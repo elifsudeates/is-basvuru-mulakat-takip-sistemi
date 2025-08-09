@@ -1,0 +1,144 @@
+.avatar-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+}
+.education-icon,
+.experience-icon {
+  width: 50px;
+  height: 50px;
+  font-size: 1.25rem;
+}
+.timeline { position: relative; padding-left: 30px; }
+.timeline-item { position: relative; padding-bottom: 20px; }
+.timeline-item::before { content: ''; position: absolute; left: -22px; top: 8px; bottom: -12px; width: 2px; background: #dee2e6; }
+.timeline-item:last-child::before { display: none; }
+.timeline-marker { position: absolute; left: -26px; top: 4px; width: 10px; height: 10px; border-radius: 50%; }
+.stat-box { padding: 10px; border-radius: 8px; background: rgba(0,0,0,0.02); }
+.info-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,0.05); }
+.info-row:last-child { border-bottom: none; }
+.info-row .label { font-weight: 600; color: #6c757d; }
+.info-row .value { color: #495057; }
+.nav-pills .nav-link { border-radius: 20px; margin-right: 5px; font-size: 0.9rem; padding: 8px 16px; }
+.nav-pills .nav-link.active { background-color: #0d6efd; }
+.empty-state { min-height: 400px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+.candidate-detail { position: relative; }
+
+/* YENİ: Interview specific styles */
+.interview-actions {
+  display: flex;
+  gap: 5px;
+}
+
+.interview-actions .btn {
+  padding: 4px 8px;
+  font-size: 0.8rem;
+}
+
+.interview-status-badge {
+  font-size: 0.7rem;
+}
+
+.participant-badge {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.evaluation-score {
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+.note-card {
+  background-color: #f8f9fa;
+  border-left: 3px solid #007bff;
+}
+
+.evaluation-card {
+  background-color: #fff8e1;
+  border-left: 3px solid #ffc107;
+}
+
+/* Modal improvements */
+.modal-lg {
+  max-width: 900px;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Multi-select improvements */
+select[multiple] {
+  height: auto;
+  min-height: 100px;
+  max-height: 150px;
+}
+
+select[multiple] option {
+  padding: 6px 10px;
+  border-bottom: 1px solid #eee;
+}
+
+select[multiple] option:checked {
+  background-color: #e3f2fd;
+  color: #0d6efd;
+  font-weight: 500;
+}
+
+select[multiple] option:hover {
+  background-color: #f5f5f5;
+}
+
+/* Badge improvements */
+.badge.fs-6 {
+  font-size: 0.85rem !important;
+  padding: 6px 10px;
+}
+
+/* Card improvements */
+.card.border-start {
+  border-left-width: 4px !important;
+}
+
+.border-4 {
+  border-width: 4px !important;
+}
+
+/* Button improvements */
+.btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.8rem;
+}
+
+/* Alert improvements */
+.alert-light {
+  background-color: #f8f9fa;
+  border-color: #dee2e6;
+  color: #495057;
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+  .modal-lg {
+    max-width: 95%;
+    margin: 1rem;
+  }
+  
+  .interview-actions {
+    flex-direction: column;
+    gap: 2px;
+  }
+  
+  .interview-actions .btn {
+    font-size: 0.75rem;
+    padding: 2px 6px;
+  }
+  
+  .badge.fs-6 {
+    font-size: 0.75rem !important;
+    padding: 4px 6px;
+  }
+}

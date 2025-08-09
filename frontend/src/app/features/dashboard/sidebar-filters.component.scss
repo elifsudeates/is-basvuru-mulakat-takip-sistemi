@@ -1,0 +1,71 @@
+  .btn-xs {
+    padding: 0.125rem 0.25rem;
+    font-size: 0.75rem;
+  }
+
+  .filter-group {
+    position: relative;
+  }
+
+  .filter-group::after {
+    content: '';
+    position: absolute;
+    bottom: -0.5rem;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(to right, transparent, #dee2e6, transparent);
+  }
+
+  .filter-group:last-child::after {
+    display: none;
+  }
+
+  .form-control:focus,
+  .form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+  }
+
+  .badge {
+    font-size: 0.7rem;
+  }
+
+  /* Multi-select styles */
+  select[multiple] {
+    height: auto;
+    min-height: 80px;
+    max-height: 120px;
+  }
+
+  select[multiple] option {
+    padding: 4px 8px;
+    border-bottom: 1px solid #eee;
+  }
+
+  select[multiple] option:checked {
+    background-color: #e3f2fd;
+    color: #0d6efd;
+    font-weight: 500;
+  }
+
+  select[multiple] option:hover {
+    background-color: #f8f9fa;
+  }
+
+  /* Quick filter buttons hover effects */
+  .btn-xs:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+
+  /* Form validation styles */
+  .is-valid {
+    border-color: #198754;
+  }
+
+  /* Loading state */
+  .btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }

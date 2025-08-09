@@ -1,0 +1,228 @@
+<!-- src/app/features/dashboard/sidebar-filters.component.html -->
+<div class="card shadow-sm border-0">
+  <!-- Header with collapse toggle -->
+  <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+    <div class="d-flex align-items-center">
+      <i class="fas fa-filter me-2"></i>
+      <span class="fw-semibold">Filtreler</span>
+      <span *ngIf="activeFiltersCount > 0" class="badge bg-warning text-dark ms-2">
+        {{ activeFiltersCount }}
+      </span>
+    </div>
+    <button class="btn btn-sm btn-outline-light border-0" type="button" (click)="toggleCollapse()">
+      <i class="fas" [class.fa-chevron-up]="!isCollapsed" [class.fa-chevron-down]="isCollapsed"></i>
+    </button>
+  </div>
+
+  <!-- Filter Body -->
+  <div class="card-body" [class.d-none]="isCollapsed">
+    <form [formGroup]="fg">
+
+      <!-- Text Search -->
+      <div class="filter-group mb-3">
+        <label class="form-label text-muted small fw-semibold">
+          <i class="fas fa-search me-1"></i>
+          GENEL ARAMA
+        </label>
+        <div class="position-relative">
+          <input class="form-control form-control-sm" formControlName="text"
+            placeholder="Ad, pozisyon, şehir, e-posta, telefon..." [class.is-valid]="hasTextFilter">
+          <i *ngIf="hasTextFilter" class="fas fa-check position-absolute text-success"
+            style="right: 8px; top: 50%; transform: translateY(-50%);"></i>
+        </div>
+      </div>
+
+      <!-- Location Filters -->
+      <div class="filter-group mb-3">
+        <label class="form-label text-muted small fw-semibold">
+          <i class="fas fa-map-marker-alt me-1"></i>
+          ŞEHİR
+        </label>
+        <select class="form-select form-select-sm" formControlName="cities" multiple
+          [class.is-valid]="hasLocationFilter">
+          <option *ngFor="let city of datas?.cities" [value]="city">
+            {{ city }}
+          </option>
+        </select>
+
+        <!-- Quick city filters -->
+        <div class="mt-2" *ngIf="datas?.cities && datas.cities.length > 0">
+          <small class="text-muted d-block mb-1">Hızlı Seçim:</small>
+          <div class="d-flex flex-wrap gap-1">
+            <button type="button" class="btn btn-outline-primary btn-xs" (click)="quickFilterByCity('Sivas')">
+              Sivas
+            </button>
+            <button type="button" class="btn btn-outline-primary btn-xs" (click)="quickFilterByCity('İstanbul')">
+              İstanbul
+            </button>
+            <button type="button" class="btn btn-outline-primary btn-xs" (click)="quickFilterByCity('Ankara')">
+              Ankara
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Position Filters -->
+      <div class="filter-group mb-3">
+        <label class="form-label text-muted small fw-semibold">
+          <i class="fas fa-briefcase me-1"></i>
+          POZİSYON
+        </label>
+        <select class="form-select form-select-sm" formControlName="positions" multiple
+          [class.is-valid]="hasPositionFilter">
+          <option *ngFor="let position of datas?.positions" [value]="position">
+            {{ position }}
+          </option>
+        </select>
+
+        <!-- Quick position filters -->
+        <div class="mt-2" *ngIf="datas?.positions && datas.positions.length > 0">
+          <small class="text-muted d-block mb-1">Popüler:</small>
+          <div class="d-flex flex-wrap gap-1">
+            <button *ngFor="let position of datas.positions.slice(0, 3)" type="button"
+              class="btn btn-outline-success btn-xs" (click)="quickFilterByPosition(position)">
+              {{ position }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Department Filter -->
+      <div class="filter-group mb-3">
+        <label class="form-label text-muted small fw-semibold">
+          <i class="fas fa-graduation-cap me-1"></i>
+          EĞİTİM ALANI
+        </label>
+        <select class="form-select form-select-sm" formControlName="departments" multiple>
+          <option *ngFor="let dept of datas?.departments" [value]="dept">
+            {{ dept }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Demographics -->
+      <div class="filter-group mb-3">
+        <label class="form-label text-muted small fw-semibold">
+          <i class="fas fa-users me-1"></i>
+          CİNSİYET
+        </label>
+
+        <select class="form-select form-select-sm mb-2" formControlName="gender"
+          [class.is-valid]="hasDemographicFilters">
+          <option value="">Tüm Cinsiyetler</option>
+          <option value="Erkek">Erkek</option>
+          <option value="Kadın">Kadın</option>
+        </select>
+
+        <!-- Quick gender filters -->
+        <div class="d-flex gap-2 mb-2">
+          <button type="button" class="btn btn-outline-info btn-xs flex-fill" (click)="quickFilterByGender('Erkek')">
+            <i class="fas fa-male"></i> Erkek
+          </button>
+          <button type="button" class="btn btn-outline-danger btn-xs flex-fill" (click)="quickFilterByGender('Kadın')">
+            <i class="fas fa-female"></i> Kadın
+          </button>
+        </div>
+
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" formControlName="disabledOnly" id="disabledCheck">
+          <label class="form-check-label small" for="disabledCheck">
+            <i class="fas fa-wheelchair me-1"></i>
+            Engellilik durumu olanlar
+          </label>
+        </div>
+      </div>
+
+      <!-- Interview Status - GÜNCELLENMIŞ -->
+      <div class="filter-group mb-3">
+        <label class="form-label text-muted small fw-semibold">
+          <i class="fas fa-comments me-1"></i>
+          MÜLAKAT DURUMU
+        </label>
+        
+      
+        
+        <!-- Quick Actions -->
+        <div class="d-flex gap-1 mt-2">
+          <button type="button" class="btn btn-outline-success btn-xs flex-fill" 
+                  (click)="quickFilterInterviewStatus('has')">
+            <i class="fas fa-check me-1"></i> Var
+          </button>
+          <button type="button" class="btn btn-outline-warning btn-xs flex-fill" 
+                  (click)="quickFilterInterviewStatus('none')">
+            <i class="fas fa-times me-1"></i> Yok
+          </button>
+          <button type="button" class="btn btn-outline-secondary btn-xs flex-fill" 
+                  (click)="quickFilterInterviewStatus('all')">
+            <i class="fas fa-list me-1"></i> Tümü
+          </button>
+        </div>
+      </div>
+
+      <!-- Score Range -->
+      <div class="filter-group mb-3">
+        <label class="form-label text-muted small fw-semibold">
+          <i class="fas fa-star me-1"></i>
+          PUAN ARALIĞI
+        </label>
+        <div class="row g-2">
+          <div class="col-6">
+            <input type="number" class="form-control form-control-sm" formControlName="minScore" placeholder="Min"
+              min="0" max="100" [class.is-valid]="hasScoreFilter">
+          </div>
+          <div class="col-6">
+            <input type="number" class="form-control form-control-sm" formControlName="maxScore" placeholder="Max"
+              min="0" max="100" [class.is-valid]="hasScoreFilter">
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="d-grid gap-2">
+        <button class="btn btn-outline-secondary btn-sm" type="button" (click)="reset()" [disabled]="loading">
+          <i class="fas fa-eraser me-1"></i>
+          Filtreleri Temizle
+          <span *ngIf="activeFiltersCount > 0" class="badge bg-secondary ms-1">
+            {{ activeFiltersCount }}
+          </span>
+        </button>
+      </div>
+
+      <!-- Filter Summary - DÜZELTİLMİŞ -->
+      <div *ngIf="activeFiltersCount > 0" class="mt-3 p-2 bg-light rounded">
+        <small class="text-muted d-block mb-1">
+          <i class="fas fa-info-circle me-1"></i>
+          Aktif {{ activeFiltersCount }} filtre uygulanıyor
+        </small>
+        <div class="d-flex flex-wrap gap-1">
+          <span *ngIf="fg.get('text')?.value" class="badge bg-primary">
+            Metin: "{{ fg.get('text')?.value }}"
+          </span>
+          <span *ngIf="getCitiesCount() > 0" class="badge bg-info">
+            {{ getCitiesCount() }} Şehir
+          </span>
+          <span *ngIf="getPositionsCount() > 0" class="badge bg-success">
+            {{ getPositionsCount() }} Pozisyon
+          </span>
+          <span *ngIf="fg.get('gender')?.value" class="badge bg-warning text-dark">
+            {{ fg.get('gender')?.value }}
+          </span>
+          <span *ngIf="fg.get('disabledOnly')?.value" class="badge bg-secondary">
+            Engellilik
+          </span>
+          <span *ngIf="fg.get('hasInterview')?.value" class="badge bg-success">
+            Mülakatı Var
+          </span>
+          <span *ngIf="fg.get('noInterview')?.value" class="badge bg-warning text-dark">
+            Mülakatı Yok
+          </span>
+          <span *ngIf="getScoreRange()" class="badge bg-dark">
+            Puan: {{ getScoreRange() }}
+          </span>
+        </div>
+      </div>
+
+    </form>
+  </div>
+</div>
+

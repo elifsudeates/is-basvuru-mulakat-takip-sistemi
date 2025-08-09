@@ -1,0 +1,221 @@
+
+.dashboard-container {
+  padding: 15px;
+}
+
+.candidate-avatar .avatar-sm {
+  width: 40px;
+  height: 40px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.candidate-item {
+  transition: all 0.2s ease;
+  border: 1px solid rgba(0,0,0,0.1);
+  margin-bottom: 8px;
+  border-radius: 8px;
+}
+
+.candidate-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.candidate-item.active {
+  background-color:#c6d0eef5;
+  border-color: #0d6efd;
+}
+
+.candidate-actions .btn {
+  padding: 4px 8px;
+  font-size: 0.8rem;
+}
+
+.stat-item {
+  padding: 8px;
+  border-radius: 6px;
+  background: rgba(0,0,0,0.03);
+}
+
+.min-w-0 {
+  min-width: 0;
+}
+
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.badge {
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+.candidate-list-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  position: relative;
+  padding: 15px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.candidate-list {
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 15px;
+}
+
+.pagination-wrapper {
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+}
+
+.page-link {
+  cursor: pointer;
+  user-select: none;
+  min-width: 40px;
+  text-align: center;
+}
+
+.items-per-page {
+  display: flex;
+  align-items: center;
+}
+
+/* Progress Steps Styles */
+.progress-steps {
+  margin-bottom: 30px;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  flex: 1;
+}
+
+.step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 20px;
+  left: 60%;
+  right: -40%;
+  height: 2px;
+  background: #dee2e6;
+  z-index: 1;
+}
+
+.step.completed:not(:last-child)::after {
+  background: #28a745;
+}
+
+.step-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #dee2e6;
+  color: #6c757d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  position: relative;
+  z-index: 2;
+}
+
+.step.active .step-circle {
+  background: #0d6efd;
+  color: white;
+}
+
+.step.completed .step-circle {
+  background: #28a745;
+  color: white;
+}
+
+.step-label {
+  margin-top: 8px;
+  font-size: 0.85rem;
+  text-align: center;
+  color: #6c757d;
+}
+
+.step.active .step-label {
+  color: #0d6efd;
+  font-weight: 600;
+}
+
+.step.completed .step-label {
+  color: #28a745;
+}
+
+.step-content {
+  min-height: 400px;
+}
+
+.modal-xl {
+  max-width: 1200px;
+}
+
+.card-title {
+  color: #495057;
+}
+
+.alert-info {
+  background-color: #e7f3ff;
+  border-color: #b8daff;
+  color: #0c5460;
+}
+
+/* Mobil uyumluluk */
+@media (max-width: 992px) {
+  .candidate-list {
+    max-height: none;
+  }
+  
+  .pagination-wrapper > div {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .items-per-page {
+    width: 100%;
+    justify-content: flex-end;
+  }
+  
+  .modal-xl {
+    max-width: 95%;
+  }
+  
+  .step-label {
+    font-size: 0.75rem;
+  }
+  
+  .step-circle {
+    width: 35px;
+    height: 35px;
+    font-size: 0.9rem;
+  }
+}
+
+/* Multi-select styles */
+select[multiple] {
+  height: auto;
+  min-height: 100px;
+}
+
+select[multiple] option {
+  padding: 5px;
+  border-bottom: 1px solid #eee;
+}
+
+select[multiple] option:checked {
+  background-color: #e3f2fd;
+  color: #0d6efd;
+}

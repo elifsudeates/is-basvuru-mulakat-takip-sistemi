@@ -1,0 +1,934 @@
+<div class="dashboard-container ">
+  
+  <!-- Header Section -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <h2 class="mb-1">İK Dashboard</h2>
+          <p class="text-muted mb-0">Aday yönetimi ve mülakat takip sistemi</p>
+        </div>
+        <button class="btn btn-outline-primary" (click)="refreshData()" [disabled]="candidatesLoading">
+          <i class="fas fa-sync-alt me-1" [class.fa-spin]="candidatesLoading"></i>
+          Yenile
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Dashboard Content -->
+  <div class="row">
+    
+    <!-- Filters Sidebar -->
+    <div class="col-12 col-lg-3 mb-3">
+      <app-sidebar-filters
+        [datas]="filterData"
+        [filters]="currentFilters"
+        [filterOptions]="filterOptions"
+        [loading]="candidatesLoading"
+        (filtersChange)="onFiltersChange($event)">
+      </app-sidebar-filters>
+
+      <!-- Quick Stats Card -->
+      <div class="card shadow-sm border-0 mt-3">
+        <div class="card-header bg-light">
+          <h6 class="mb-0">
+            <i class="fas fa-chart-pie me-2"></i>
+            Hızlı İstatistikler
+          </h6>
+        </div>
+        <div class="card-body p-3">
+          <div class="row text-center">
+            <div class="col-6 mb-2">
+              <div class="stat-item">
+                <div class="h5 text-primary mb-0">{{ totalItems || 0 }}</div>
+                <small class="text-muted">Toplam Aday</small>
+              </div>
+            </div>
+            <div class="col-6 mb-2">
+              <div class="stat-item">
+                <div class="h5 text-success mb-0">{{ (candidates$ | async)?.length || 0 }}</div>
+                <small class="text-muted">Gösterilen</small>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="stat-item">
+                <div class="h5 text-info mb-0">{{ (interviews$ | async)?.length || 0 }}</div>
+                <small class="text-muted">Mülakat</small>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="stat-item">
+                <div class="h5 text-warning mb-0">{{ filterOptions.positions.length }}</div>
+                <small class="text-muted">Pozisyon</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Candidate List -->
+    <div class="col-12 col-lg-4 mb-2">
+      <div class="candidate-list-container">
+        
+        <!-- List Header -->
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <div>
+            <h5 class="mb-0">
+              <i class="fas fa-users me-2"></i>
+              Adaylar
+            </h5>
+            <small class="text-muted">
+              {{ (candidates$ | async)?.length || 0 }} aday gösteriliyor ({{ totalItems }} toplam)
+            </small>
+          </div>
+          <button class="btn btn-sm btn-success" (click)="openCreateModal()">
+            <i class="fas fa-plus me-1"></i>
+            Yeni Aday
+          </button>
+        </div>
+
+        <!-- Loading State -->
+        <div *ngIf="candidatesLoading" class="text-center py-5">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Adaylar yükleniyor...</span>
+          </div>
+          <p class="text-muted mt-2">Adaylar yükleniyor...</p>
+        </div>
+
+        <!-- Candidate List -->
+        <div *ngIf="!candidatesLoading" class="candidate-list">
+          <div class="list-group" *ngIf="(candidates$ | async)?.length; else noResults">
+            
+            <button
+              *ngFor="let candidate of candidates$ | async; trackBy: trackById"
+              class="list-group-item list-group-item-action candidate-item"
+              [class.active]="selectedCandidate?.id === candidate.id"
+              (click)="selectCandidate(candidate)">
+              
+              <div class="d-flex align-items-start">
+                
+                <!-- Avatar -->
+                <div class="candidate-avatar me-3">
+                  <div class="avatar-sm bg-primary text-white d-flex align-items-center justify-content-center rounded-circle">
+                    {{ candidate.adi.charAt(0).toUpperCase() }}
+                  </div>
+                </div>
+                
+                <!-- Content -->
+                <div class="flex-grow-1 min-w-0">
+                  
+                  <!-- Header -->
+                  <div class="d-flex justify-content-between align-items-start mb-1">
+                    <h6 class="mb-0 fw-semibold text-truncate">{{ candidate.adi }}</h6>
+                    <div class="candidate-actions ms-2">
+                      <div class="d-flex gap-1">
+                        <!-- YENİ: Düzenle butonu -->
+                        <button class="btn btn-sm btn-outline-primary" 
+                                title="Düzenle"
+                                (click)="$event.stopPropagation(); openEditModal(candidate)">
+                          <i class="fas fa-edit"></i>
+                        </button>
+                        <!-- YENİ: Sil butonu -->
+                        <button class="btn btn-sm btn-outline-danger" 
+                                title="Sil"
+                                (click)="$event.stopPropagation(); deleteCandidate(candidate.id)">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Info -->
+                  <div class="candidate-info mb-2">
+                    <div class="text-muted small mb-1">
+                      <span *ngIf="candidate.basvurdugu_pozisyon" class="me-2">
+                        <i class="fas fa-briefcase me-1"></i>
+                        {{ candidate.basvurdugu_pozisyon }}
+                      </span>
+                    </div>
+                    <div class="text-muted small">
+                      <span *ngIf="candidate.sehri" class="me-2">
+                        <i class="fas fa-map-marker-alt me-1"></i>
+                        {{ candidate.sehri }}
+                      </span>
+                      <span *ngIf="candidate.mail" class="me-2">
+                        <i class="fas fa-envelope me-1"></i>
+                        {{ candidate.mail }}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <!-- Badges -->
+                  <div class="d-flex flex-wrap gap-1">
+                    <span *ngIf="candidate.mulakatlar?.length" 
+                          class="badge bg-warning">
+                      {{ candidate.mulakatlar?.length || 0 }} Mülakat
+                    </span>
+                    <span *ngIf="candidate.tecrubeler?.length" 
+                          class="badge bg-info">
+                      {{ candidate.tecrubeler?.length || 0 }} Deneyim
+                    </span>
+                    <span *ngIf="candidate.engellilik" 
+                          class="badge bg-warning">
+                      Engellilik
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </button>
+            
+          </div>
+          
+          <!-- No Results -->
+          <ng-template #noResults>
+            <div class="text-center py-5">
+              <i class="fas fa-search fa-3x text-muted mb-3"></i>
+              <h6 class="text-muted">Aday bulunamadı</h6>
+              <p class="text-muted mb-0">
+                Arama kriterlerinizi değiştirmeyi deneyin veya yeni bir aday ekleyin.
+              </p>
+            </div>
+          </ng-template>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination-wrapper mt-3">
+          <div class="d-flex justify-content-between align-items-center">
+            <nav aria-label="Page navigation">
+              <ul class="pagination mb-0">
+                <li class="page-item" [class.disabled]="currentPage === 1">
+                  <a class="page-link" (click)="changePage(currentPage - 1)">Öncesi</a>
+                </li>
+                
+                <li *ngFor="let page of paginationPages" class="page-item" [class.active]="page === currentPage">
+                  <a class="page-link" (click)="changePage(page)">{{ page }}</a>
+                </li>
+                
+                <li class="page-item" [class.disabled]="currentPage * itemsPerPage >= totalItems">
+                  <a class="page-link" (click)="changePage(currentPage + 1)">Sonraki</a>
+                </li>
+              </ul>
+            </nav>
+            
+            <div class="items-per-page">
+              <select class="form-select form-select-sm" 
+                      [(ngModel)]="itemsPerPage" (change)="changeItemsPerPage()">
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+              </select>
+              <span class="ms-2 text-muted small">sayfa başına</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Candidate Detail -->
+    <div class="col-12 col-lg-5">
+      <div class="row">
+        <app-candidate-detail 
+          [candidate]="selectedCandidate$ | async"
+          [loading]="selectedCandidateLoading">
+        </app-candidate-detail>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Create/Edit Modal - ADVANCED VERSION -->
+<div *ngIf="showCandidateModal" class="modal fade show d-block" tabindex="-1">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <form [formGroup]="candidateForm" (ngSubmit)="onSubmitCandidate()">
+        
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="fas fa-user-plus me-2"></i>
+            {{ editingCandidateId ? 'Adayı Düzenle' : 'Yeni Aday Ekle' }}
+          </h5>
+          <button type="button" class="btn-close" (click)="closeCandidateModal()"></button>
+        </div>
+        
+        <div class="modal-body">
+          
+          <!-- Progress Steps -->
+          <div class="progress-steps mb-4">
+            <div class="d-flex justify-content-between">
+              <div class="step" [class.active]="currentStep === 1" [class.completed]="currentStep > 1">
+                <div class="step-circle">1</div>
+                <span class="step-label">Kişisel Bilgiler</span>
+              </div>
+              <div class="step" [class.active]="currentStep === 2" [class.completed]="currentStep > 2">
+                <div class="step-circle">2</div>
+                <span class="step-label">Eğitim</span>
+              </div>
+              <div class="step" [class.active]="currentStep === 3" [class.completed]="currentStep > 3">
+                <div class="step-circle">3</div>
+                <span class="step-label">Deneyim</span>
+              </div>
+              <div class="step" [class.active]="currentStep === 4" [class.completed]="currentStep > 4">
+                <div class="step-circle">4</div>
+                <span class="step-label">Beceriler</span>
+              </div>
+              <div class="step" [class.active]="currentStep === 5" [class.completed]="currentStep > 5">
+                <div class="step-circle">5</div>
+                <span class="step-label">Sertifikalar</span>
+              </div>
+              <!-- YENİ: Mülakatlar step'i -->
+              <div class="step" [class.active]="currentStep === 6" [class.completed]="currentStep > 6">
+                <div class="step-circle">6</div>
+                <span class="step-label">Mülakatlar</span>
+              </div>
+              <div class="step" [class.active]="currentStep === 7">
+                <div class="step-circle">7</div>
+                <span class="step-label">Özet</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 1: Kişisel Bilgiler -->
+          <div *ngIf="currentStep === 1" class="step-content">
+            <h6 class="text-primary mb-3">
+              <i class="fas fa-user me-2"></i>
+              Kişisel Bilgiler
+            </h6>
+            
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">Ad Soyad *</label>
+                  <input class="form-control" formControlName="adi" required />
+                  <div *ngIf="candidateForm.get('adi')?.invalid && candidateForm.get('adi')?.touched" 
+                       class="form-text text-danger">
+                    Ad alanı zorunludur.
+                  </div>
+                </div>
+                
+                <div class="mb-3">
+                  <label class="form-label">E-posta</label>
+                  <input type="email" class="form-control" formControlName="mail" />
+                </div>
+                
+                <div class="mb-3">
+                  <label class="form-label">Telefon</label>
+                  <input class="form-control" formControlName="telefon_no" />
+                </div>
+                
+                <div class="mb-3">
+                  <label class="form-label">Doğum Tarihi</label>
+                  <input type="date" class="form-control" formControlName="dogum_tarihi" />
+                </div>
+              </div>
+              
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">Cinsiyet</label>
+                  <select class="form-select" formControlName="cinsiyet">
+                    <option value="">Seçiniz</option>
+                    <option value="Erkek">Erkek</option>
+                    <option value="Kadın">Kadın</option>
+                  </select>
+                </div>
+                
+                <div class="mb-3">
+                  <label class="form-label">Başvurduğu Pozisyon</label>
+                  <input class="form-control" formControlName="basvurdugu_pozisyon" />
+                </div>
+                
+                <div class="mb-3">
+                  <label class="form-label">Şehir</label>
+                  <input class="form-control" formControlName="sehri" />
+                </div>
+                
+                <div class="mb-3">
+                  <label class="form-label">Askerlik Durumu</label>
+                  <select class="form-select" formControlName="askerlik_durumu">
+                    <option value="">Seçiniz</option>
+                    <option value="Yapıldı">Yapıldı</option>
+                    <option value="Muaf">Muaf</option>
+                    <option value="Tecilli">Tecilli</option>
+                  </select>
+                </div>
+                
+                <div class="mb-3">
+                  <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" formControlName="engellilik" id="engellillik">
+                    <label class="form-check-label" for="engellillik">
+                      Engellilik durumu var
+                    </label>
+                  </div>
+                  <div *ngIf="candidateForm.get('engellilik')?.value">
+                    <label class="form-label">Engellilik Oranı (%)</label>
+                    <input type="number" class="form-control" formControlName="engellilik_orani" min="0" max="100" />
+                  </div>
+                </div>
+              </div>
+              
+              <div class="col-12">
+                <div class="mb-3">
+                  <label class="form-label">Açıklama</label>
+                  <textarea class="form-control" rows="3" formControlName="description" 
+                            placeholder="Aday hakkında notlarınız..."></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 2: Eğitim -->
+          <div *ngIf="currentStep === 2" class="step-content">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h6 class="text-primary mb-0">
+                <i class="fas fa-graduation-cap me-2"></i>
+                Eğitim Bilgileri
+              </h6>
+              <button type="button" class="btn btn-sm btn-success" (click)="addEducation()">
+                <i class="fas fa-plus me-1"></i>
+                Eğitim Ekle
+              </button>
+            </div>
+
+            <div formArrayName="okullar">
+              <div *ngFor="let education of educationFormArray.controls; let i = index" 
+                   [formGroupName]="i" class="card mb-3">
+                <div class="card-body">
+                  <div class="d-flex justify-content-between align-items-start mb-3">
+                    <h6 class="card-title mb-0">Eğitim {{ i + 1 }}</h6>
+                    <button type="button" class="btn btn-sm btn-outline-danger" (click)="removeEducation(i)">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-md-6">
+                      <div class="mb-3">
+                        <label class="form-label">Okul Adı *</label>
+                        <input class="form-control" formControlName="okul_adi" required />
+                      </div>
+                      
+                      <div class="mb-3">
+                        <label class="form-label">Bölüm</label>
+                        <input class="form-control" formControlName="okul_bolumu" />
+                      </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                      <div class="mb-3">
+                        <label class="form-label">Şehir</label>
+                        <input class="form-control" formControlName="okul_ili" />
+                      </div>
+                      
+                      <div class="mb-3">
+                        <label class="form-label">Okul Tipi</label>
+                        <select class="form-select" formControlName="okul_tipi">
+                          <option value="">Seçiniz</option>
+                          <option value="1">Lise</option>
+                          <option value="2">Üniversite</option>
+                          <option value="3">Yüksek Lisans</option>
+                          <option value="4">Doktora</option>
+                        </select>
+                      </div>
+                      
+                      <div class="mb-3">
+                        <label class="form-label">Not Ortalaması</label>
+                        <input type="number" class="form-control" formControlName="not_ortalamasi" 
+                               step="0.01" min="0" max="4" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div *ngIf="educationFormArray.length === 0" class="alert alert-info">
+              <i class="fas fa-info-circle me-2"></i>
+              Henüz eğitim bilgisi eklenmemiş. "Eğitim Ekle" butonuna tıklayarak başlayın.
+            </div>
+          </div>
+
+          <!-- Step 3: Deneyim -->
+          <div *ngIf="currentStep === 3" class="step-content">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h6 class="text-primary mb-0">
+                <i class="fas fa-briefcase me-2"></i>
+                İş Deneyimi
+              </h6>
+              <button type="button" class="btn btn-sm btn-success" (click)="addExperience()">
+                <i class="fas fa-plus me-1"></i>
+                Deneyim Ekle
+              </button>
+            </div>
+
+            <div formArrayName="tecrubeler">
+              <div *ngFor="let experience of experienceFormArray.controls; let i = index" 
+                   [formGroupName]="i" class="card mb-3">
+                <div class="card-body">
+                  <div class="d-flex justify-content-between align-items-start mb-3">
+                    <h6 class="card-title mb-0">Deneyim {{ i + 1 }}</h6>
+                    <button type="button" class="btn btn-sm btn-outline-danger" (click)="removeExperience(i)">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-md-6">
+                      <div class="mb-3">
+                        <label class="form-label">Şirket Adı *</label>
+                        <input class="form-control" formControlName="sirket_adi" required />
+                      </div>
+                      
+                      <div class="mb-3">
+                        <label class="form-label">Pozisyon</label>
+                        <input class="form-control" formControlName="pozisyonu" />
+                      </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                      <div class="mb-3">
+                        <label class="form-label">Giriş Tarihi</label>
+                        <input type="date" class="form-control" formControlName="giris_tarihi" />
+                      </div>
+                      
+                      <div class="mb-3">
+                        <label class="form-label">Çıkış Tarihi</label>
+                        <input type="date" class="form-control" formControlName="cikis_tarihi" />
+                        <small class="form-text text-muted">Halen çalışıyorsa boş bırakın</small>
+                      </div>
+                    </div>
+                    
+                    <div class="col-12">
+                      <div class="mb-3">
+                        <label class="form-label">Referans Kişi</label>
+                        <input class="form-control" formControlName="sirket_referansi" 
+                               placeholder="Ad Soyad, Pozisyon, İletişim" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div *ngIf="experienceFormArray.length === 0" class="alert alert-info">
+              <i class="fas fa-info-circle me-2"></i>
+              Henüz iş deneyimi eklenmemiş. "Deneyim Ekle" butonuna tıklayarak başlayın.
+            </div>
+          </div>
+
+          <!-- Step 4: Beceriler -->
+          <div *ngIf="currentStep === 4" class="step-content">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h6 class="text-primary mb-0">
+                <i class="fas fa-cogs me-2"></i>
+                Beceriler
+              </h6>
+              <button type="button" class="btn btn-sm btn-success" (click)="addSkill()">
+                <i class="fas fa-plus me-1"></i>
+                Beceri Ekle
+              </button>
+            </div>
+
+            <div formArrayName="beceriler">
+              <div *ngFor="let skill of skillsFormArray.controls; let i = index" 
+                   [formGroupName]="i" class="card mb-3">
+                <div class="card-body">
+                  <div class="d-flex justify-content-between align-items-start mb-3">
+                    <h6 class="card-title mb-0">Beceri {{ i + 1 }}</h6>
+                    <button type="button" class="btn btn-sm btn-outline-danger" (click)="removeSkill(i)">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-md-4">
+                      <div class="mb-3">
+                        <label class="form-label">Beceri Adı *</label>
+                        <input class="form-control" formControlName="beceri_adi" required />
+                      </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                      <div class="mb-3">
+                        <label class="form-label">Beceri Türü</label>
+                        <select class="form-select" formControlName="beceri_turu_id">
+                          <option value="">Seçiniz</option>
+                          <option value="1">Dil</option>
+                          <option value="2">Kişisel Gelişim</option>
+                          <option value="3">Teknik Gelişim</option>
+                          <option value="4">Sınavlar</option>
+                          <option value="5">TÜBİTAK Projesi</option>
+                          <option value="6">Makale</option>
+
+                        </select>
+                      </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                      <div class="mb-3">
+                        <label class="form-label">Seviye</label>
+                        <!-- Eğer beceri_turu_id 4 (Sınavlar) ise input göster -->
+                        <input
+                          *ngIf="skill.get('beceri_turu_id')?.value == 4"
+                          type="number"
+                          class="form-control"
+                          formControlName="beceri_seviyesi"
+                          min="0"
+                          max="100"
+                          step="0.01"
+                          placeholder="0.00 - 100.00 arasında bir puan girin" />
+                        <!-- Diğer durumlarda select göster -->
+                        <select
+                          *ngIf="skill.get('beceri_turu_id')?.value != 4"
+                          class="form-select"
+                          formControlName="beceri_seviyesi">
+                          <option value="">Seçiniz</option>
+                          <option value="Başlangıç">Başlangıç</option>
+                          <option value="Orta">Orta</option>
+                          <option value="İleri">İleri</option>
+                          <option value="Uzman">Uzman</option>
+                        </select>
+                      
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div *ngIf="skillsFormArray.length === 0" class="alert alert-info">
+              <i class="fas fa-info-circle me-2"></i>
+              Henüz beceri eklenmemiş. "Beceri Ekle" butonuna tıklayarak başlayın.
+            </div>
+          </div>
+
+          <!-- Step 5: Sertifikalar -->
+          <div *ngIf="currentStep === 5" class="step-content">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h6 class="text-primary mb-0">
+                <i class="fas fa-certificate me-2"></i>
+                Sertifikalar
+              </h6>
+              <button type="button" class="btn btn-sm btn-success" (click)="addCertificate()">
+                <i class="fas fa-plus me-1"></i>
+                Sertifika Ekle
+              </button>
+            </div>
+
+            <div formArrayName="sertifikalar">
+              <div *ngFor="let certificate of certificatesFormArray.controls; let i = index" 
+                   [formGroupName]="i" class="card mb-3">
+                <div class="card-body">
+                  <div class="d-flex justify-content-between align-items-start mb-3">
+                    <h6 class="card-title mb-0">Sertifika {{ i + 1 }}</h6>
+                    <button type="button" class="btn btn-sm btn-outline-danger" (click)="removeCertificate(i)">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-md-6">
+                      <div class="mb-3">
+                        <label class="form-label">Sertifika Adı *</label>
+                        <input class="form-control" formControlName="sertifika_adi" required />
+                      </div>
+                      
+                      <div class="mb-3">
+                        <label class="form-label">Alınma Tarihi</label>
+                        <input type="date" class="form-control" formControlName="alinma_tarihi" />
+                      </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                      <div class="mb-3">
+                        <label class="form-label">Geçerlilik Tarihi</label>
+                        <input type="date" class="form-control" formControlName="gecerliligi" />
+                        <small class="form-text text-muted">Süresizse boş bırakın</small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div *ngIf="certificatesFormArray.length === 0" class="alert alert-info">
+              <i class="fas fa-info-circle me-2"></i>
+              Henüz sertifika eklenmemiş. "Sertifika Ekle" butonuna tıklayarak başlayın.
+            </div>
+          </div>
+          <!-- YENİ: Step 6: Mülakatlar -->
+          <div *ngIf="currentStep === 6" class="step-content">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h6 class="text-primary mb-0">
+                <i class="fas fa-comments me-2"></i>
+                Mülakatlar
+              </h6>
+              <button type="button" class="btn btn-sm btn-success" (click)="addInterview()">
+                <i class="fas fa-plus me-1"></i>
+                Mülakat Ekle
+              </button>
+            </div>
+
+            <div formArrayName="mulakatlar">
+              <div *ngFor="let interview of interviewsFormArray.controls; let i = index" 
+                   [formGroupName]="i" class="card mb-4">
+                <div class="card-body">
+                  <div class="d-flex justify-content-between align-items-start mb-3">
+                    <h6 class="card-title mb-0">
+                      <i class="fas fa-comments me-2"></i>
+                      Mülakat {{ i + 1 }}
+                    </h6>
+                    <button type="button" class="btn btn-sm btn-outline-danger" (click)="removeInterview(i)">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>
+
+                  <!-- Mülakat Temel Bilgileri -->
+                  <div class="row mb-4">
+                    <div class="col-md-4">
+                      <div class="mb-3">
+                        <label class="form-label">Mülakat Tarihi</label>
+                        <input type="datetime-local" class="form-control" formControlName="mulakat_tarihi" />
+                      </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                      <div class="mb-3">
+                        <label class="form-label">Planlanan Tarih</label>
+                        <input type="datetime-local" class="form-control" formControlName="planlanan_toplanti_tarihi" />
+                      </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                      <div class="mb-3">
+                        <label class="form-label">Mülakat Türü</label>
+                        <select class="form-select" formControlName="mulakat_tipi">
+                          <option value="">Seçiniz</option>
+                          <option value="ön mülakat">Ön Mülakat</option>
+                          <option value="teknik mülakat">Teknik Mülakat</option>
+                          <option value="son mülakat">Son Mülakat</option>
+                          <option value="grup mülakatı">Grup Mülakatı</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Katılımcılar -->
+                  <div class="mb-4">
+                    <label class="form-label fw-semibold">
+                      <i class="fas fa-users me-1"></i>
+                      Mülakat Katılımcıları
+                    </label>
+                    <select class="form-select" formControlName="katilimcilar" multiple>
+                      <option *ngFor="let participant of availableParticipants" [value]="participant.id">
+                        {{ participant.katilimci_adi }} ({{ participant.sicil }})
+                      </option>
+                    </select>
+                    <small class="form-text text-muted">
+                      Ctrl/Cmd tuşu ile birden fazla katılımcı seçebilirsiniz.
+                    </small>
+                  </div>
+
+                  <!-- Notlar -->
+                  <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <label class="form-label fw-semibold mb-0">
+                        <i class="fas fa-sticky-note me-1"></i>
+                        Mülakat Notları
+                      </label>
+                      <button type="button" class="btn btn-sm btn-outline-success" (click)="addNote(i)">
+                        <i class="fas fa-plus me-1"></i>
+                        Not Ekle
+                      </button>
+                    </div>
+
+                    <div formArrayName="notlar">
+                      <div *ngFor="let note of getNotesFormArray(i).controls; let noteIndex = index" 
+                           [formGroupName]="noteIndex" class="card border-light mb-2">
+                        <div class="card-body p-3">
+                          <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="card-title mb-0 small">Not {{ noteIndex + 1 }}</h6>
+                            <button type="button" class="btn btn-sm btn-outline-danger" (click)="removeNote(i, noteIndex)">
+                              <i class="fas fa-times"></i>
+                            </button>
+                          </div>
+
+                          <div class="row">
+                            <div class="col-md-4">
+                              <div class="mb-2">
+                                <label class="form-label small">Değerlendiren</label>
+                                <select class="form-select form-select-sm" formControlName="sicil" required>
+                                  <option value="">Seçiniz</option>
+                                  <option *ngFor="let participant of availableParticipants" [value]="participant.sicil">
+                                    {{ participant.katilimci_adi }}
+                                  </option>
+                                </select>
+                              </div>
+                            </div>
+                            <div class="col-md-8">
+                              <div class="mb-2">
+                                <label class="form-label small">Not</label>
+                                <textarea class="form-control form-control-sm" rows="2" 
+                                          formControlName="not_metni" required
+                                          placeholder="Mülakat notunuzu buraya yazın..."></textarea>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div *ngIf="getNotesFormArray(i).length === 0" class="alert alert-light">
+                      <small class="text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Henüz not eklenmemiş.
+                      </small>
+                    </div>
+                  </div>
+
+                  <!-- Değerlendirmeler -->
+                  <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <label class="form-label fw-semibold mb-0">
+                        <i class="fas fa-star me-1"></i>
+                        Değerlendirmeler
+                      </label>
+                      <button type="button" class="btn btn-sm btn-outline-warning" (click)="addEvaluation(i)">
+                        <i class="fas fa-plus me-1"></i>
+                        Değerlendirme Ekle
+                      </button>
+                    </div>
+
+                    <div formArrayName="degerlendirmeler">
+                      <div *ngFor="let evaluation of getEvaluationsFormArray(i).controls; let evalIndex = index" 
+                           [formGroupName]="evalIndex" class="card border-warning mb-2">
+                        <div class="card-body p-3">
+                          <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="card-title mb-0 small text-warning">Değerlendirme {{ evalIndex + 1 }}</h6>
+                            <button type="button" class="btn btn-sm btn-outline-danger" (click)="removeEvaluation(i, evalIndex)">
+                              <i class="fas fa-times"></i>
+                            </button>
+                          </div>
+
+                          <div class="row">
+                            <div class="col-md-4">
+                              <div class="mb-2">
+                                <label class="form-label small">Değerlendiren</label>
+                                <select class="form-select form-select-sm" formControlName="sicil" required>
+                                  <option value="">Seçiniz</option>
+                                  <option *ngFor="let participant of availableParticipants" [value]="participant.sicil">
+                                    {{ participant.katilimci_adi }}
+                                  </option>
+                                </select>
+                              </div>
+                            </div>
+                            <div class="col-md-4">
+                              <div class="mb-2">
+                                <label class="form-label small">Değerlendirme Türü</label>
+                                <select class="form-select form-select-sm" formControlName="degerlendirme_turu">
+                                  <option value="genel">Genel</option>
+                                  <option value="teknik">Teknik</option>
+                                  <option value="karar">Karar</option>
+                                  <option value="kişisel">Kişisel</option>
+                                </select>
+                              </div>
+                            </div>
+                            <div class="col-md-4">
+                              <div class="mb-2">
+                                <label class="form-label small">Puan (0-100)</label>
+                                <input type="number" class="form-control form-control-sm" 
+                                       formControlName="puani" required
+                                       min="0" max="100" placeholder="85" />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div *ngIf="getEvaluationsFormArray(i).length === 0" class="alert alert-light">
+                      <small class="text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Henüz değerlendirme eklenmemiş.
+                      </small>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+            
+            <div *ngIf="interviewsFormArray.length === 0" class="alert alert-info">
+              <i class="fas fa-info-circle me-2"></i>
+              Henüz mülakat eklenmemiş. "Mülakat Ekle" butonuna tıklayarak başlayın.
+            </div>
+          </div>
+
+          <!-- Step 7: Özet (Step 6'dan 7'ye güncellendi) -->
+          <div *ngIf="currentStep === 7" class="step-content">
+            <h6 class="text-primary mb-3">
+              <i class="fas fa-check-circle me-2"></i>
+              Özet ve Onay
+            </h6>
+            
+            <div class="row">
+              <div class="col-md-6">
+                <div class="card border-primary">
+                  <div class="card-header bg-primary text-white">
+                    <h6 class="mb-0">Kişisel Bilgiler</h6>
+                  </div>
+                  <div class="card-body">
+                    <p><strong>Ad Soyad:</strong> {{ candidateForm.get('adi')?.value || '-' }}</p>
+                    <p><strong>E-posta:</strong> {{ candidateForm.get('mail')?.value || '-' }}</p>
+                    <p><strong>Telefon:</strong> {{ candidateForm.get('telefon_no')?.value || '-' }}</p>
+                    <p><strong>Pozisyon:</strong> {{ candidateForm.get('basvurdugu_pozisyon')?.value || '-' }}</p>
+                    <p><strong>Şehir:</strong> {{ candidateForm.get('sehri')?.value || '-' }}</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="col-md-6">
+                <div class="card border-info">
+                  <div class="card-header bg-info text-white">
+                    <h6 class="mb-0">Eklenen Veriler</h6>
+                  </div>
+                  <div class="card-body">
+                    <p><strong>Eğitim:</strong> {{ educationFormArray.length }} kayıt</p>
+                    <p><strong>Deneyim:</strong> {{ experienceFormArray.length }} kayıt</p>
+                    <p><strong>Beceri:</strong> {{ skillsFormArray.length }} kayıt</p>
+                    <p><strong>Sertifika:</strong> {{ certificatesFormArray.length }} kayıt</p>
+                    <p><strong>Mülakat:</strong> {{ interviewsFormArray.length }} kayıt</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeCandidateModal()">
+            İptal
+          </button>
+          
+          <button *ngIf="currentStep > 1" type="button" class="btn btn-outline-primary" (click)="previousStep()">
+            <i class="fas fa-chevron-left me-1"></i>
+            Önceki
+          </button>
+          
+          <button *ngIf="currentStep < 7" type="button" class="btn btn-primary" (click)="nextStep()">
+            Sonraki
+            <i class="fas fa-chevron-right ms-1"></i>
+          </button>
+          
+          <button *ngIf="currentStep === 7" type="submit" class="btn btn-success" [disabled]="candidateForm.get('adi')?.invalid">
+            <i class="fas fa-save me-1"></i>
+            {{ editingCandidateId ? 'Güncelle' : 'Kaydet' }}
+          </button>
+        </div>
+        
+      </form>
+    </div>
+  </div>
+</div>
+<div *ngIf="showCandidateModal" class="modal-backdrop fade show"></div>
+
